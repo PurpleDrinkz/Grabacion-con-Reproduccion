@@ -15,6 +15,9 @@ using System.Windows.Shapes;
 
 using NAudio;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using Microsoft.Win32;
+using System.Windows.Threading;
 
 
 
@@ -27,8 +30,9 @@ namespace Grabacion
     {
         WaveIn waveIn;
         WaveFormat formato;
-        WaveFileReader writer;
-
+        WaveFileWriter writer;
+        WaveOutEvent output;
+        AudioFileReader reader;
 
         public MainWindow()
         {
@@ -37,19 +41,24 @@ namespace Grabacion
 
         private void btnIniciar_Click(object sender, RoutedEventArgs e)
         {
-            formato = new WaveFormat(44100, 1);
             waveIn = new WaveIn();
+            waveIn.WaveFormat = new WaveFormat(44100, 16, 1);
+            formato = waveIn.WaveFormat;
+
+
 
             waveIn.DataAvailable += OnDataAvailable;
             waveIn.RecordingStopped += OnRecordingStopped;
 
             writer =
-                new WaveFileReader("sonido.wav", formato);
+                new WaveFileWriter("sonido2.wav", formato);
+
+            waveIn.StartRecording();
         }
 
         void OnRecordingStopped(object sender, StoppedEventArgs e)
         {
-
+            writer.Dispose();
 
         }
 
@@ -70,6 +79,19 @@ namespace Grabacion
         private void btnDetener_Click(object sender, RoutedEventArgs e)
         {
             waveIn.StopRecording();
+        }
+
+        
+
+        
+
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            output = new WaveOutEvent();
+            reader = new AudioFileReader("sonido2.wav");
+            output.Init(reader);
+            output.Play();
+
         }
     }
 }
